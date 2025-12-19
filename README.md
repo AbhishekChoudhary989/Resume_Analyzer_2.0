@@ -1,140 +1,121 @@
+
 # 🚀 AI CareerBoost | Intelligent Resume Analyzer
+## 📖 Introduction
 
-**AI CareerBoost** is a full-stack application designed to help job seekers optimize their resumes. It uses advanced Large Language Models (LLM) to compare resumes against specific job descriptions, simulating a real-world **ATS (Applicant Tracking System)** to provide scores, feedback, and improvement suggestions.
+**AI CareerBoost** is a next-generation career intelligence platform designed to bridge the gap between job seekers and Applicant Tracking Systems (ATS).
 
----
+In today's competitive job market, nearly **75% of resumes are rejected by automated systems** before they ever reach a human recruiter. AI CareerBoost solves this problem by simulating a real-world ATS. It uses advanced **Generative AI (Llama 3)** to semantically analyze your resume against specific job descriptions.
+
+Instead of simple keyword matching, our AI "reads" your resume to understand context, impact, and tone. It then provides an instant **0-100 score**, detailed feedback on your content's strength, and actionable tips to optimize your application for the specific role you want.
 
 ## ✨ Key Features
 
-* **🔐 Secure Authentication:** Full Login/Signup system using JWT (JSON Web Tokens) and bcrypt password hashing.
-* **📄 PDF Resume Parsing:** Automatically extracts text from uploaded PDF resumes.
-* **🖼️ Thumbnail Generation:** Auto-generates image previews of the first page of the resume.
-* **🤖 AI-Powered Analysis:** Uses **Groq (Llama 3)** to analyze keywords, structure, tone, and relevance.
-* **🎯 Job Matching:** Compares the resume strictly against a specific Job Title and Description.
-* **📊 Visual Dashboard:** Clean, modern UI to track history and view score breakdowns (Tone, Content, Skills).
-* **🎨 Modern UI:** Glassmorphism design with responsive Tailwind CSS styling.
+* **🔐 Secure Authentication:** Complete Login/Signup system with JWT & Bcrypt.
+* **📄 Smart PDF Parsing:** Extracts text from complex resume layouts.
+* **🖼️ Visual Thumbnails:** Auto-generates image previews of uploaded resumes.
+* **🤖 AI Grading Engine:** Scores resumes (0-100) based on impact, keywords, and tone.
+* **🛡️ Data Guardrails:** Automatically rejects non-resume files (e.g., invoices).
+* **🎨 Modern UI:** Responsive Glassmorphism design built with Tailwind CSS.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### **Frontend**
-
-* **React (Vite):** Fast, component-based UI.
-* **Tailwind CSS:** For styling and responsive design.
-* **Lucide React:** Beautiful, consistent icons.
-* **PDF.js:** For client-side PDF rendering and image conversion.
-
-### **Backend**
-
-* **Node.js & Express:** RESTful API server.
-* **MongoDB & Mongoose:** NoSQL database for storing users and analysis results.
-* **Groq SDK:** Interface for the Llama 3 AI model.
-* **Multer:** For handling file uploads.
-* **PDF-Parse:** Server-side text extraction.
+* **Frontend:** React.js, Vite, Tailwind CSS, Lucide Icons
+* **Backend:** Node.js, Express.js
+* **Database:** MongoDB, Mongoose
+* **AI Engine:** Groq SDK (Llama 3-70b)
+* **File Handling:** Multer, PDF-Parse, PDF.js
 
 ---
 
-## ⚙️ Prerequisites
+## 🚀 Getting Started
 
-Before running this project, ensure you have the following installed:
+Follow these steps to get a local copy up and running.
 
-1. **Node.js** (v16 or higher)
-2. **MongoDB** (Installed locally or have a MongoDB Atlas connection string)
-3. **Git**
+### 1. Prerequisites
+Ensure you have the following installed:
+* [Node.js](https://nodejs.org/) (v18 or higher)
+* [MongoDB](https://www.mongodb.com/try/download/community) (Local) or [Atlas](https://www.mongodb.com/atlas) (Cloud)
+* [Git](https://git-scm.com/)
 
----
+### 2. Installation
 
-## 🚀 Installation & Setup Guide
-
-Follow these steps to get the project running on your local machine.
-
-### **Step 1: Clone the Repository**
-
-Open your terminal and run:
-
+**Clone the repository:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/resume-analyzer.git
+git clone [https://github.com/YOUR_USERNAME/resume-analyzer.git](https://github.com/YOUR_USERNAME/resume-analyzer.git)
 cd resume-analyzer
 
 ```
 
----
+#### **A. Setup Backend (Server)**
 
-### **Step 2: Backend Setup**
-
-The backend handles the AI logic and database connection.
-
-1. Navigate to the server folder:
 ```bash
 cd server
-
-```
-
-
-2. Install dependencies:
-```bash
 npm install
 
 ```
 
+#### **B. Setup Frontend (Client)**
 
-3. **Create Environment Variables:**
-Create a file named `.env` inside the `server/` folder and add the following keys:
+Open a new terminal, go back to the root folder:
+
+```bash
+cd ..
+npm install
+
+```
+
+### 3. Environment Configuration (Crucial!)
+
+You must create a `.env` file for the backend to work.
+
+1. Navigate to the `server/` folder.
+2. Create a file named `.env`.
+3. Paste the following keys:
+
 ```env
 # Server Port
 PORT=5000
 
-# Database Connection (Use local or Atlas link)
+# Database Connection (Use your local link or Atlas link)
 MONGODB_URI=mongodb://127.0.0.1:27017/resume-analyzer
 
-# Security Key for Login (Make this random)
-JWT_SECRET=my_super_secret_key_123
+# Login Security Key (Random text)
+JWT_SECRET=my_secure_secret_key_123
 
-# AI API Key (Get from https://console.groq.com/)
-GROQ_API_KEY=gsk_your_groq_api_key_here
+# AI API Key (Get free from [https://console.groq.com/keys](https://console.groq.com/keys))
+GROQ_API_KEY=gsk_your_api_key_here
 
 ```
 
+---
 
-4. Start the Backend Server:
+## ▶️ How to Run
+
+You need to run the **Backend** and **Frontend** simultaneously.
+
+**Terminal 1 (Backend):**
+
 ```bash
+cd server
 node index.js
 
 ```
 
+> *Output should say: "✅ Connected to MongoDB"*
 
-*You should see: "✅ Connected to MongoDB" and "Server running on port 5000"*
+**Terminal 2 (Frontend):**
 
----
-
-### **Step 3: Frontend Setup**
-
-The frontend is the visual interface.
-
-1. Open a **new terminal** window (do not close the backend terminal).
-2. Navigate to the project root:
 ```bash
-cd resume-analyzer
-
-```
-
-
-3. Install dependencies:
-```bash
-npm install
-
-```
-
-
-4. Start the React App:
-```bash
+# Make sure you are in the root folder
 npm run dev
 
 ```
 
+> *Output should say: "Local: http://localhost:5173/"*
 
-5. Open your browser and go to the link shown (usually `http://localhost:5173`).
+**👉 Open your browser and visit:** `http://localhost:5173`
 
 ---
 
@@ -142,45 +123,39 @@ npm run dev
 
 ```text
 resume-analyzer/
-├── app/                  # Frontend Source Code (React)
-│   ├── components/       # Reusable UI components (Navbar, Cards)
-│   ├── routes/           # Pages (Home, Upload, Login)
-│   ├── lib/              # Utilities (PDF converter)
-│   └── root.tsx          # Main entry point
-├── server/               # Backend Source Code (Node/Express)
-│   ├── models/           # Database Schemas (User, Resume)
-│   ├── routes/           # API Endpoints (Auth, AI, Upload)
-│   ├── uploads/          # Folder where PDF files are stored
-│   ├── .env              # Secrets (You create this)
-│   └── index.js          # Server entry point
-├── package.json          # Frontend dependencies
-└── README.md             # This file
+├── app/                  # Frontend Logic (React)
+│   ├── components/       # UI Components (Navbar, Cards)
+│   ├── routes/           # Page Logic (Home, Upload, Login)
+│   └── lib/              # Utilities (PDF Converter)
+├── server/               # Backend Logic (Node)
+│   ├── models/           # Database Schemas
+│   ├── routes/           # API Endpoints (Auth, AI)
+│   ├── uploads/          # Resume Storage
+│   └── index.js          # Server Entry Point
+└── README.md             # Documentation
 
 ```
 
 ---
 
-## 🛡️ Security Best Practices
+## 🐛 Troubleshooting
 
-* **Never commit the `.env` file.** It is included in `.gitignore` to prevent leaking your API keys.
-* **Passwords are hashed** using `bcryptjs` before being stored in the database.
-* **Routes are protected** using JWT verification middleware.
+* **"MongoNetworkError"**: Ensure your MongoDB service is running (`mongod`) or check your internet connection if using Atlas.
+* **"AI Analysis Failed"**: Check your terminal logs. Usually means the `GROQ_API_KEY` is missing or invalid.
+* **"Upload Failed"**: Ensure the `server/uploads` folder exists. If not, create it manually.
 
 ---
-
 
 ## 🤝 Contributing
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
----
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### 💡 Troubleshooting
+```
 
-* **"MongoNetworkError"**: Make sure your MongoDB service is running locally (`mongod`) or your Atlas URI is correct.
-* **"AI Analysis Failed"**: Check your terminal for the backend log. Ensure your `GROQ_API_KEY` is valid.
-* **"Upload Failed"**: Ensure the `server/uploads` folder exists. If not, create it manually.
+```
