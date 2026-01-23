@@ -13,66 +13,43 @@ export default function Resume() {
     const [resumeUrl, setResumeUrl] = useState("");
 
     useEffect(() => {
-        const load = async () => {
-            if (!id) return;
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/kv/get/resume:${id}`);
-                if (!res.ok) throw new Error("Resume not found");
-
-                const data = await res.json();
-
-                // Set File URL
-                if (data.resumePath) {
-                    const url = data.resumePath.startsWith("http") ? data.resumePath : `${BACKEND_URL}${data.resumePath}`;
-                    setResumeUrl(url);
+        if (!id) return;
+        fetch(`${BACKEND_URL}/api/kv/get/resume:${id}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data) {
+                    if (data.resumePath) setResumeUrl(data.resumePath.startsWith("http") ? data.resumePath : `${BACKEND_URL}${data.resumePath}`);
+                    setFeedback(typeof data.feedback === 'string' ? JSON.parse(data.feedback) : data.feedback);
                 }
-
-                // Set Feedback
-                let fb = data.feedback;
-                if (typeof fb === 'string') fb = JSON.parse(fb); // Extra safety
-                setFeedback(fb);
-
-            } catch (e) {
-                console.error("Load failed", e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, [id]);
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row">
-            {/* Left: PDF */}
-            <div className="w-full md:w-1/2 bg-slate-100 h-[50vh] md:h-screen p-4 sticky top-0">
-                <Link to="/" className="mb-4 inline-block text-sm font-bold text-slate-500 hover:text-blue-600">← Back Home</Link>
-                <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                    {resumeUrl ? (
-                        <iframe src={resumeUrl} className="w-full h-full" title="Resume" />
-                    ) : (
-                        <div className="h-full flex items-center justify-center text-slate-400">Loading PDF...</div>
-                    )}
+        <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
+            {/* Left: PDF Viewer */}
+            <div className="w-full md:w-1/2 bg-slate-200 h-[50vh] md:h-screen sticky top-0 border-r border-slate-300">
+                <div className="absolute top-4 left-4 z-10">
+                    <Link to="/" className="bg-white/90 px-3 py-1 rounded-md text-sm font-bold text-slate-700 shadow-sm hover:bg-white">← Back</Link>
                 </div>
+                {resumeUrl ? <iframe src={resumeUrl} className="w-full h-full" title="Resume" /> : <div className="h-full flex items-center justify-center text-slate-500">Loading PDF...</div>}
             </div>
 
-            {/* Right: Results */}
-            <div className="w-full md:w-1/2 p-8 overflow-y-auto">
-                <h1 className="text-3xl font-black text-slate-900 mb-8">Neural Review</h1>
-
+            {/* Right: Analysis */}
+            <div className="w-full md:w-1/2 p-6 md:p-10 overflow-y-auto">
+                <h1 className="text-3xl font-black text-slate-900 mb-6">Neural Review</h1>
                 {loading ? (
-                    <div className="text-center py-10"><div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>Analyzing...</div>
+                    <div className="text-center py-10 text-slate-500">Analyzing data...</div>
                 ) : feedback ? (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-6">
                         <Summary feedback={feedback} />
-                        <ATS
-                            score={feedback.ATS?.score || 0}
-                            suggestions={feedback.ATS?.tips || []}
-                        />
+                        <ATS score={feedback.ATS?.score || 0} suggestions={feedback.ATS?.tips || []} />
                         <Details feedback={feedback} />
                     </div>
                 ) : (
-                    <div className="p-8 bg-red-50 text-red-600 rounded-xl border border-red-100 text-center">
-                        Analysis data unavailable. <br/> Please try re-uploading the resume.
+                    <div className="p-6 bg-red-50 text-red-600 rounded-xl border border-red-100 text-center font-medium">
+                        Analysis unavailable. Please retry.
                     </div>
                 )}
             </div>

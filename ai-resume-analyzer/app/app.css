@@ -84,3 +84,32 @@
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
 }
+
+/* --- HACKER MODE ADDITIONS --- */
+@layer utilities {
+    /* 5. Animated Gradient Text (Used in Hero & Hacker Mode) */
+    .animate-gradient-x {
+        background-size: 200% 200%;
+        animation: gradient-x 15s ease infinite;
+    }
+
+    @keyframes gradient-x {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+}
+
+/* 6. Custom Cyberpunk Scrollbar (Only for Roadmap Page) */
+.hacker-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.hacker-scrollbar::-webkit-scrollbar-track {
+    background: #050505;
+}
+.hacker-scrollbar::-webkit-scrollbar-thumb {
+    background: #06b6d4; /* Cyan-500 */
+    border-radius: 4px;
+}
+.hacker-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #22d3ee; /* Cyan-400 */
+}

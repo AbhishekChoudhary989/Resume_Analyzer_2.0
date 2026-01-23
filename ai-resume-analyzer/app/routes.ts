@@ -1,8 +1,15 @@
-import {type RouteConfig, index, route} from "@react-router/dev/routes";
+import { type RouteConfig, index, route, layout } from "@react-router/dev/routes";
 
 export default [
-    index("routes/home.tsx"),
+    // 🔓 PUBLIC ROUTE (Accessible by anyone)
     route('/auth', 'routes/auth.tsx'),
-    route('/upload', 'routes/upload.tsx'),
-    route('/resume/:id', 'routes/resume.tsx'),
+
+    // 🔒 PROTECTED ROUTES (Wrapped in the Gatekeeper)
+    layout("routes/protected.tsx", [
+        index("routes/home.tsx"),
+        route('/upload', 'routes/upload.tsx'),
+        route('/resume/:id', 'routes/resume.tsx'),
+        route("codequest", "routes/codequest.tsx"),
+        route("roadmap", "routes/roadmap.tsx"),
+    ]),
 ] satisfies RouteConfig;
