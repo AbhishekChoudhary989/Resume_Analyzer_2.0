@@ -8,7 +8,7 @@ if (!apiKey) console.error("❌ FATAL: GOOGLE_API_KEY is missing in .env file.")
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // ✅ FIXED: Using 1.5-flash (Fast, Free, Stable).
-// ⚠️ "gemini-2.5-flash" causes errors. Do not change this back.
+// ⚠️ "gemini-2.5-flash" DOES NOT EXIST publicly and causes 404/Loading errors.
 const MODEL_NAME = "gemini-2.5-flash";
 
 // Helper: Retry loop
@@ -26,51 +26,44 @@ async function retryOperation(operation, retries = 3, delay = 2000) {
     throw new Error(`Failed after ${retries} attempts.`);
 }
 
-// --- 1. CODEQUEST (Strict Question vs Review Logic) ---
+// --- 1. CODEQUEST LOGIC ---
 async function generateCodeQuestReview(userCode) {
     try {
         const model = genAI.getGenerativeModel({
             model: MODEL_NAME,
-            systemInstruction: `You are a strict Coding Interviewer.
+            systemInstruction: `You are a Professional Coding Interviewer.
+            
+            MODE 1: GENERATE_QUESTION
+            If the prompt contains "GENERATE_QUESTION", you must:
+            - Create a random coding challenge based on the requested language.
+            - Provide a Title, Difficulty Level, and Problem Statement.
+            - List constraints and edge cases.
+            - DO NOT provide the code solution.
 
-            detect the intent of the user input:
-
-            ---
-            **CASE 1: GENERATE QUESTION**
-            If the input says "GENERATE_QUESTION", return a Markdown formatted coding challenge:
-            - **Title:** [Challenge Name]
-            - **Difficulty:** [Easy/Medium/Hard]
-            - **Description:** Clear problem statement.
-            - **Example Input/Output:** Show what the function takes and returns.
-            - **Constraints:** e.g., "Time complexity O(n)".
-            - **DO NOT** provide the solution code.
-
-            ---
-            **CASE 2: REVIEW SOLUTION**
-            If the input says "USER_SOLUTION", analyze the code provided by the user.
-            Return a Markdown report:
-            - **Score:** [0-100]/100
-            - **Status:** [Pass/Fail]
-            - **Bugs & Feedback:** Bullet points explaining logic errors or edge cases missed.
-            - **Optimized Solution:** Provide the correct, efficient code block.
-
-            ---
-            **CASE 3: CODE REVIEW**
-            If the input says "CODE_REVIEW", provide constructive feedback on style and best practices ONLY. Do not grade it.
-            `
+            MODE 2: REVIEW_SOLUTION
+            If the prompt contains "USER_SOLUTION", you must:
+            - Grade the code from 0-100.
+            - Explain logic errors, time complexity, and bugs.
+            - Provide a "Professional Grade" refactored solution.
+            
+            Always use Markdown formatting for responses.`
         });
 
         const result = await retryOperation(() => model.generateContent(userCode));
         return result.response.text();
     } catch (error) {
         console.error("CodeQuest Error:", error.message);
+
+        // Handle Rate Limits gracefully
+        if (error.status === 429 || error.message.includes('429')) {
+            return "### ⏳ Rate Limit Reached\nThe AI is busy right now. Please wait about 30 seconds before trying the next question.";
+        }
         return "### ⚠️ Error\nUnable to process code request.";
     }
 }
 
-// --- 2. DUMMY FUNCTIONS (Required to keep Server Alive) ---
+// --- 2. DUMMY FUNCTIONS (To keep server alive) ---
 async function extractSearchParams() { return {}; }
 async function generateRoadmap() { return ""; }
 
-// ✅ EXPORT ONLY CODEQUEST (with dummies for safety)
 module.exports = { generateCodeQuestReview, extractSearchParams, generateRoadmap };
