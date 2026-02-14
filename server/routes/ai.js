@@ -1,18 +1,15 @@
 const express = require('express');
-const Groq = require("groq-sdk");
+const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const router = express.Router();
 const pdf = require('pdf-parse');
+const { analyzeResume, generateCodeQuestReview, generateAIContent } = require('../services/ai.service');
 
-// ✅ Import the Gemini Service for CodeQuest
-const { generateCodeQuestReview } = require('../services/ai.service');
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-async function extractText(buffer) {
+// Helper to extract text from PDF
+async function extractText(filePath) {
     try {
-        const data = await pdf(buffer);
+        const dataBuffer = fs.readFileSync(filePath);
+        const data = await pdf(dataBuffer);
         return data.text;
     } catch (e) {
         console.error("PDF Parsing Error:", e);
@@ -20,105 +17,65 @@ async function extractText(buffer) {
     }
 }
 
-// --- ROUTE 1: RESUME ANALYSIS (GROQ) ---
+// ✅ MATCHES FRONTEND: /api/ai/chat
 router.post('/chat', async (req, res) => {
     try {
         const { prompt, fileUrl } = req.body;
-        let resumeText = "";
 
-        // Handle File Reading
+        // 1. Locate the file on the server
+        let resumeText = "";
         if (fileUrl && fileUrl.includes('/uploads/')) {
             const filename = fileUrl.split('/uploads/')[1];
             const filePath = path.resolve(__dirname, '..', 'uploads', filename);
 
             if (fs.existsSync(filePath)) {
-                const buffer = fs.readFileSync(filePath);
-                resumeText = await extractText(buffer);
+                resumeText = await extractText(filePath);
             }
         }
 
-        if (!resumeText || resumeText.trim().length < 50) {
-            return res.status(400).json({
-                error: "Resume text could not be read."
-            });
+        if (!resumeText || resumeText.length < 50) {
+            return res.status(400).json({ error: "Could not read resume file." });
         }
 
-        // ✅ FIXED PROMPT: Explicitly defines the JSON structure with Scores & Tips
-        const systemPrompt = `
-        You are an expert ATS (Applicant Tracking System).
-        Analyze the resume text provided.
+        // 2. Extract Job Title from your prompt "Target Role: X"
+        const jobTitle = prompt.replace("Target Role:", "").split('.')[0].trim();
 
-        If the text is clearly NOT a resume (e.g., an invoice, assignment, or random text), return: 
-        { "error": "NOT_A_RESUME" }
+        // 3. Call Gemini AI
+        const analysis = await analyzeResume(resumeText, jobTitle);
 
-        If it IS a resume, you MUST return this EXACT JSON structure:
-        {
-            "companyName": "Candidate's Current/Past Company",
-            "jobTitle": "Candidate's Role",
-            "overallScore": 0-100,
-            "summary": "3-4 sentence professional summary.",
-            "headPoints": ["Key strength 1", "Key strength 2", "Key strength 3"],
-            
-            "ATS": { 
-                "score": 0-100, 
-                "tips": [{"type": "good"|"improve", "tip": "advice", "explanation": "reason"}] 
-            },
-            "content": { 
-                "score": 0-100, 
-                "tips": [{"type": "good"|"improve", "tip": "advice", "explanation": "reason"}] 
-            },
-            "structure": { 
-                "score": 0-100, 
-                "tips": [{"type": "good"|"improve", "tip": "advice", "explanation": "reason"}] 
-            },
-            "skills": { 
-                "score": 0-100, 
-                "tips": [{"type": "good"|"improve", "tip": "advice", "explanation": "reason"}] 
-            },
-            "toneAndStyle": { 
-                "score": 0-100, 
-                "tips": [{"type": "good"|"improve", "tip": "advice", "explanation": "reason"}] 
+        // 4. Send response in the EXACT format Frontend expects
+        // Frontend expects: data.message.content
+        res.json({
+            message: {
+                content: JSON.stringify(analysis)
             }
-        }
-        `;
-
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: `Context: ${prompt}\n\nResume Text: ${resumeText.substring(0, 25000)}` }
-            ],
-            model: "llama-3.3-70b-versatile",
-            temperature: 0.1,
-            response_format: { type: "json_object" }
         });
 
-        const cleanJson = completion.choices[0]?.message?.content || "{}";
-        const parsed = JSON.parse(cleanJson);
-
-        if (parsed.error === "NOT_A_RESUME") {
-            return res.status(422).json({ error: "The uploaded file does not appear to be a resume." });
-        }
-
-        res.json({ message: { content: cleanJson } });
-
     } catch (error) {
-        console.error("AI Error:", error.message);
-        res.status(500).json({ error: "AI Service Error: " + error.message });
+        console.error("AI Route Error:", error);
+        res.status(500).json({ error: "AI Analysis Failed" });
     }
 });
 
-// --- ROUTE 2: CODEQUEST REVIEW (GEMINI) ---
+// ROUTE 2: CODEQUEST
 router.post('/get-review', async (req, res) => {
     try {
         const { code } = req.body;
-        if (!code) return res.status(400).json({ error: "Code snippet is required" });
-
-        // Call Gemini Service
         const result = await generateCodeQuestReview(code);
         res.json({ result });
     } catch (error) {
-        console.error("CodeQuest Route Error:", error);
         res.status(500).json({ error: "Failed to process code review" });
+    }
+});
+
+// ROUTE 3: LINKEDIN
+router.post('/linkedin-optimize', async (req, res) => {
+    try {
+        const { resumeText } = req.body;
+        const result = await generateAIContent("LINKEDIN_OPTIMIZATION", { resumeText });
+        res.json({ result });
+    } catch (e) {
+        res.status(500).json({ error: "Failed to optimize profile" });
     }
 });
 

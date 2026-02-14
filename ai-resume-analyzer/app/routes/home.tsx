@@ -1,6 +1,8 @@
 import type { Route } from "./+types/home";
 import Navbar from "~/components/Navbar";
 import ResumeCard from "~/components/ResumeCard";
+import DashboardCharts from "~/components/DashboardCharts";
+import LinkedInOptimizer from "~/components/LinkedInOptimizer";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { Code2 } from "lucide-react";
@@ -15,6 +17,7 @@ export default function Home() {
     const navigate = useNavigate();
     const [resumes, setResumes] = useState<any[]>([]);
     const [loadingResumes, setLoadingResumes] = useState(true);
+    const [latestResumeText, setLatestResumeText] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -32,7 +35,20 @@ export default function Home() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setResumes(data.reverse());
+                    const sortedData = data.reverse();
+                    setResumes(sortedData);
+
+                    // ✅ ROBUST DATA EXTRACTION
+                    if (sortedData.length > 0) {
+                        const latest = sortedData[0];
+
+                        // Try to find the best source of text for the AI
+                        // 1. Feedback object (best)
+                        // 2. Raw text (if saved)
+                        // 3. Stringify the whole object (fallback)
+                        const contentToOptimize = latest.feedback || latest.summary || latest;
+                        setLatestResumeText(JSON.stringify(contentToOptimize));
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load resumes");
@@ -47,7 +63,6 @@ export default function Home() {
         <main className="min-h-screen w-full bg-slate-50 text-gray-900">
             <Navbar />
 
-            {/* HERO SECTION - Simplified */}
             <section className="pt-24 pb-12 px-6 text-center max-w-5xl mx-auto">
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 border border-blue-100">
                     AI-Powered Career Intelligence
@@ -72,30 +87,41 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* DASHBOARD GRID */}
             <section className="max-w-7xl mx-auto px-6 pb-20">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                    Your Resumes <span className="bg-slate-200 text-xs px-2 py-1 rounded-full">{resumes.length}</span>
-                </h2>
+                {/* 1. DASHBOARD CHARTS */}
+                <DashboardCharts />
 
-                {loadingResumes ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-slate-200 rounded-3xl animate-pulse" />)}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {resumes.map((resume: any, index: number) => (
-                            <ResumeCard key={resume.id || index} resume={resume} />
-                        ))}
+                {/* 2. LINKEDIN OPTIMIZER (Centered) */}
+                <div className="my-12 max-w-3xl mx-auto">
+                    <LinkedInOptimizer resumeText={latestResumeText} />
+                </div>
 
-                        <Link to="/upload" className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-3xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer">
-                            <div className="h-12 w-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3">
-                                <span className="text-2xl">+</span>
-                            </div>
-                            <span className="font-bold text-slate-600">New Analysis</span>
-                        </Link>
-                    </div>
-                )}
+                {/* 3. RESUME GRID */}
+                <div>
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                        Your Resumes <span className="bg-slate-200 text-xs px-2 py-1 rounded-full">{resumes.length}</span>
+                    </h2>
+
+                    {loadingResumes ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-slate-200 rounded-3xl animate-pulse" />)}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <Link to="/upload" className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-slate-300 rounded-3xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer group">
+                                <div className="h-14 w-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <span className="text-3xl font-light">+</span>
+                                </div>
+                                <span className="font-bold text-slate-700 text-lg">New Analysis</span>
+                                <span className="text-sm text-slate-400 mt-1">Check another resume</span>
+                            </Link>
+
+                            {resumes.map((resume: any, index: number) => (
+                                <ResumeCard key={resume.id || index} resume={resume} />
+                            ))}
+                        </div>
+                    )}
+                </div>
             </section>
         </main>
     );

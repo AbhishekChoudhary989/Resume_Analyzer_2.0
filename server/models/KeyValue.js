@@ -1,10 +1,9 @@
-// server/models/KeyValue.js
 const mongoose = require('mongoose');
 
-const KeyValueSchema = new mongoose.Schema({
+const KVSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
-    // ✅ FIX: Use 'Mixed' type to allow storing JSON objects directly
-    value: { type: mongoose.Schema.Types.Mixed, required: true }
+    value: { type: mongoose.Schema.Types.Mixed, required: true },
+    createdAt: { type: Date, default: Date.now } // ✅ This field is required for charts
 });
 
-module.exports = mongoose.model('KeyValue', KeyValueSchema);
+module.exports = mongoose.model('KeyValue', KVSchema);
